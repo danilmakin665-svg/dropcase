@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>LootDrop — Открывай кейсы!</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body {
+            background: #0f141e;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { font-size: 28px; margin: 20px 0; color: #00d1ff; }
+        .case {
+            width: 200px;
+            height: 120px;
+            background: url('https://cdn-icons-png.flaticon.com/512/3670/3670036.png') no-repeat center;
+            background-size: contain;
+            margin: 40px 0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .case:hover { transform: scale(1.1); }
+        .result {
+            font-size: 18px;
+            margin: 20px;
+            min-height: 60px;
+            color: #00d1ff;
+        }
+        .coins {
+            font-size: 16px;
+            background: #1c2333;
+            padding: 10px 20px;
+            border-radius: 10px;
+            width: fit-content;
+            margin-top: 10px;
+        }
+        .btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #00d1ff;
+            color: black;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { background: #00a8cc; }
+    </style>
+</head>
+<body>
+    <h1>🎁 Открой кейс и получи скин!</h1>
+    
+    <div class="case" id="openCase"></div>
+    
+    <div class="result" id="result">Нажми на кейс, чтобы открыть</div>
+    
+    <div class="coins">Монеты: <span id="coins">10</span></div>
+
+    <button class="btn" onclick="dailyReward()">Ежедневная награда (+5)</button>
+
+    <script>
+        let coins = parseInt(localStorage.getItem("lootdrop_coins")) || 10;
+        document.getElementById("coins").textContent = coins;
+
+        const skins = [
+            "AK-47 | Neon Rider (Rare)",
+            "M4A4 | Emperor (Unusual)",
+            "Glock-18 | Moonrise (Mythical)",
+            "Desert Eagle | Shattered Web (Legendary)",
+            "Knife | Stiletto (Covert)",
+            "USP-S | Night Lotus (Classified)",
+            "AWP | Dragon Lore (Ancient)"
+        ];
+
+        document.getElementById("openCase").onclick = function() {
+            if (coins < 1) {
+                document.getElementById("result").innerHTML = "❌ Недостаточно монет!";
+                return;
+            }
+
+            coins--;
+            document.getElementById("coins").textContent = coins;
+            localStorage.setItem("lootdrop_coins", coins);
+
+            document.getElementById("result").innerHTML = "🌀 Открываем...";
+
+            setTimeout(() => {
+                const randomSkin = skins[Math.floor(Math.random() * skins.length)];
+                document.getElementById("result").innerHTML = `🎉 Выпало: <strong>${randomSkin}</strong>`;
+            }, 1500);
+        };
+
+        function dailyReward() {
+            coins += 5;
+            document.getElementById("coins").textContent = coins;
+            localStorage.setItem("lootdrop_coins", coins);
+            alert("✅ Получено +5 монет!");
+        }
+    </script>
+</body>
+</html>
