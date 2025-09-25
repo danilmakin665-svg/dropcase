@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>LootDrop — Открывай кейсы!</title>
+    <title>CS Loot — Открывай кейсы!</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body {
             background: #0f141e;
             color: white;
@@ -16,26 +16,80 @@
             padding: 20px;
             text-align: center;
         }
-        h1 { font-size: 24px; margin: 20px 0; color: #00d1ff; }
-        
-        .case-container {
-            position: relative;
-            width: 200px;
-            height: 150px;
+        h1 { font-size: 26px; margin: 20px 0; color: #00d1ff; text-shadow: 0 0 5px rgba(0, 209, 255, 0.5); }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #1c2333;
+            border-radius: 10px;
             cursor: pointer;
-            margin: 30px 0;
+            transition: 0.2s;
+        }
+        .tab.active {
+            background: #00d1ff;
+            color: black;
+            font-weight: bold;
+        }
+        .content { display: none; }
+        .content.active { display: block; }
+
+        .cases-select {
+            display: flex;
+            gap: 20px;
+            margin: 20px auto;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .case-option {
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+        .case-option.selected {
+            opacity: 1;
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 10px #00d1ff);
+        }
+        .case-option img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+        .case-name {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .case-price {
+            font-size: 14px;
+            color: #ffcc00;
+        }
+
+        .case-container {
+            width: 220px;
+            height: 160px;
+            margin: 30px auto;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            filter: drop-shadow(0 0 15px rgba(0, 209, 255, 0.3));
         }
         .case-img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            transition: transform 0.2s;
+            transition: transform 0.3s;
         }
-        .case-img:hover { transform: scale(1.1); }
+        .case-img:hover { transform: scale(1.05); }
 
         .result {
             margin: 20px;
-            min-height: 80px;
+            min-height: 120px;
             font-size: 16px;
             color: #00d1ff;
             opacity: 0;
@@ -44,26 +98,61 @@
         .result.show {
             opacity: 1;
         }
-
         .skin-img {
-            max-width: 100%;
+            max-width: 90%;
             height: auto;
             border-radius: 8px;
             margin-top: 10px;
             box-shadow: 0 0 15px rgba(0, 209, 255, 0.5);
+            border: 2px solid #00d1ff;
+        }
+        .rarity {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .price {
+            font-size: 14px;
+            color: #aaffaa;
+        }
+
+        .inventory {
+            margin: 20px auto;
+            max-width: 500px;
+        }
+        .inv-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1c2333;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+        .inv-item:hover {
+            background: #253047;
+        }
+        .inv-item img {
+            width: 60px;
+            margin-right: 15px;
+        }
+        .inv-info {
+            text-align: left;
+            flex-grow: 1;
         }
 
         .coins {
-            font-size: 16px;
+            font-size: 18px;
             background: #1c2333;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 10px;
             width: fit-content;
             margin-top: 10px;
+            font-weight: bold;
         }
-
         .btn {
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 12px 24px;
             background: #00d1ff;
             color: black;
@@ -72,82 +161,235 @@
             border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
+            transition: 0.2s;
         }
-        .btn:hover { background: #00a8cc; }
+        .btn:hover {
+            background: #00a8cc;
+            transform: scale(1.05);
+        }
+
+        .ref-link {
+            margin: 15px 0;
+            padding: 12px;
+            background: #1c2333;
+            border-radius: 8px;
+            word-break: break-all;
+            font-size: 14px;
+            color: #ddd;
+        }
     </style>
 </head>
 <body>
-    <h1>🎁 Открой кейс и получи скин!</h1>
-    
-    <div class="case-container" id="openCase">
-        <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" class="case-img" alt="Кейс">
-    </div>
-    
-    <div class="result" id="result">Нажми на кейс, чтобы открыть</div>
-    
-    <div class="coins">Монеты: <span id="coins">10</span></div>
+    <h1>🎁 CS Loot — Открывай кейсы!</h1>
 
-    <button class="btn" onclick="dailyReward()">Ежедневная награда (+5)</button>
+    <!-- Вкладки -->
+    <div class="tabs">
+        <div class="tab active" onclick="openTab('game')">Играть</div>
+        <div class="tab" onclick="openTab('inventory')">Инвентарь</div>
+        <div class="tab" onclick="openTab('ref')">Рефералы</div>
+    </div>
+
+    <!-- Игровая зона -->
+    <div id="game" class="content active">
+        <div class="cases-select">
+            <div class="case-option selected" data-id="basic">
+                <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" alt="Базовый">
+                <div class="case-name">Базовый</div>
+                <div class="case-price">50 монет</div>
+            </div>
+            <div class="case-option" data-id="pro">
+                <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" alt="Про">
+                <div class="case-name">Про</div>
+                <div class="case-price">150 монет</div>
+            </div>
+            <div class="case-option" data-id="elite">
+                <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" alt="Элитный">
+                <div class="case-name">Элитный</div>
+                <div class="case-price">300 монет</div>
+            </div>
+        </div>
+
+        <div class="case-container" id="openCase">
+            <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" class="case-img" alt="Кейс">
+        </div>
+
+        <div class="result" id="result">Выбери кейс и нажми, чтобы открыть</div>
+
+        <div class="coins">Монеты: <span id="coins">200</span></div>
+        <button class="btn" onclick="dailyReward()">Ежедневная награда (+20)</button>
+    </div>
+
+    <!-- Инвентарь -->
+    <div id="inventory" class="content">
+        <h2>🎒 Твой инвентарь</h2>
+        <div class="inventory" id="inventoryList">
+            <!-- Скины будут здесь -->
+        </div>
+        <button class="btn" onclick="document.getElementById('inventory').classList.remove('active'); document.getElementById('game').classList.add('active');">Назад</button>
+    </div>
+
+    <!-- Рефералы -->
+    <div id="ref" class="content">
+        <h2>🤝 Приведи друга</h2>
+        <p>Поделись ссылкой — получи награду за каждого друга</p>
+        <div class="ref-link" id="refLink">t.me/CasesBot?start=твой_ник</div>
+        <p>За каждого друга: +100 монет</p>
+        <button class="btn" onclick="copyRefLink()">Скопировать ссылку</button>
+        <button class="btn" onclick="document.getElementById('ref').classList.remove('active'); document.getElementById('game').classList.add('active');">Назад</button>
+    </div>
 
     <script>
-        let coins = parseInt(localStorage.getItem("lootdrop_coins")) || 10;
+        let coins = parseInt(localStorage.getItem("csloot_coins")) || 200;
+        let inventory = JSON.parse(localStorage.getItem("csloot_inventory")) || [];
+        let refId = localStorage.getItem("csloot_ref") || Math.random().toString(36).substr(2, 9);
+        let currentCase = "basic";
+
+        // Обновляем интерфейс
         document.getElementById("coins").textContent = coins;
+        updateInventory();
+        document.getElementById("refLink").textContent = `t.me/CasesBot?start=${refId}`;
 
-        // Список скинов: [название, ссылка на картинку]
-        const skins = [
-    ["AK-47 | Neon Rider", "https://i.imgur.com/8Vqk2lD.png"],
-    ["M4A4 | Emperor", "https://i.imgur.com/3pZbN6T.png"],
-    ["AWP | Dragon Lore", "https://i.imgur.com/5uXjC0L.png"],
-    ["Glock-18 | Moonrise", "https://i.imgur.com/mK9e9Yf.png"],
-    ["Desert Eagle | Shattered Web", "https://i.imgur.com/1aBcDeF.png"]
-];
+        // Выбор кейса
+        document.querySelectorAll(".case-option").forEach(el => {
+            el.onclick = function() {
+                document.querySelectorAll(".case-option").forEach(x => x.classList.remove("selected"));
+                this.classList.add("selected");
+                currentCase = this.getAttribute("data-id");
+            };
+        });
 
-        // Загрузи случайный скин
-        function openCase() {
-            if (coins < 1) {
+        // Открытие кейса
+        document.getElementById("openCase").onclick = function() {
+            const caseData = {
+                basic: { price: 50, winChance: 0.15 },
+                pro: { price: 150, winChance: 0.25 },
+                elite: { price: 300, winChance: 0.35 }
+            };
+
+            const data = caseData[currentCase];
+            if (coins < data.price) {
                 document.getElementById("result").innerHTML = "❌ Недостаточно монет!";
+                showResult();
                 return;
             }
 
-            coins--;
+            coins -= data.price;
             document.getElementById("coins").textContent = coins;
-            localStorage.setItem("lootdrop_coins", coins);
+            localStorage.setItem("csloot_coins", coins);
 
             const resultDiv = document.getElementById("result");
             resultDiv.innerHTML = '<strong>🌀 Открываем кейс...</strong>';
             resultDiv.classList.remove("show");
 
-            // Убираем изображение скина
             document.querySelector(".skin-img")?.remove();
 
-            setTimeout(() => {
-                const randomSkin = skins[Math.floor(Math.random() * skins.length)];
-                const name = randomSkin[0];
-                const img = randomSkin[1];
+            // Анимация
+            const caseImg = document.querySelector(".case-img");
+            caseImg.style.transform = "scale(0.95)";
+            setTimeout(() => caseImg.style.transform = "scale(1)", 200);
 
-                resultDiv.innerHTML = `<strong>🎉 Выпало: ${name}</strong>`;
+            setTimeout(() => {
+                const roll = Math.random();
+                const skins = getSkinsByCase(currentCase);
+                const isWinExpensive = roll < data.winChance;
+                let skin;
+
+                if (isWinExpensive) {
+                    const expensive = skins.filter(s => s[2] > data.price);
+                    skin = expensive.length > 0 
+                        ? expensive[Math.floor(Math.random() * expensive.length)] 
+                        : skins[Math.floor(Math.random() * skins.length)];
+                } else {
+                    skin = skins[Math.floor(Math.random() * skins.length)];
+                }
+
+                const name = skin[0];
+                const img = skin[1];
+                const price = skin[2];
+                const rarity = skin[3];
+
+                resultDiv.innerHTML = `<strong>🎉 Выпало: ${name}</strong><br><span class="rarity">${rarity}</span>`;
                 const imgEl = document.createElement("img");
                 imgEl.src = img;
                 imgEl.alt = name;
                 imgEl.className = "skin-img";
                 resultDiv.appendChild(imgEl);
+                resultDiv.insertAdjacentHTML("beforeend", `<div class="price">Цена: $${price}</div>`);
                 resultDiv.classList.add("show");
 
-                // Звук (можно заменить на свой)
+                // Добавляем в инвентарь
+                inventory.push({ name, img, price, rarity, from: currentCase });
+                localStorage.setItem("csloot_inventory", JSON.stringify(inventory));
+                updateInventory();
+
+                // Звук
                 const audio = new Audio("https://www.soundjay.com/buttons/sounds/button-1.mp3");
                 audio.play();
             }, 1500);
+        };
+
+        // Получение скинов по типу кейса
+        function getSkinsByCase(type) {
+            const allSkins = [
+                ["AK-47 | Neon Rider", "https://i.imgur.com/8Vqk2lD.png", 120, "Шмот"],
+                ["M4A4 | Emperor", "https://i.imgur.com/3pZbN6T.png", 200, "Шмот"],
+                ["AWP | Dragon Lore", "https://i.imgur.com/5uXjC0L.png", 500, "Тайный"],
+                ["Glock-18 | Moonrise", "https://i.imgur.com/mK9e9Yf.png", 80, "Редкий"],
+                ["Desert Eagle | Shattered Web", "https://i.imgur.com/1aBcDeF.png", 150, "Легендарный"],
+                ["USP-S | Night Lotus", "https://i.imgur.com/5uXjC0L.png", 400, "Тайный"],
+                ["M9 Bayonet | Doppler", "https://i.imgur.com/8Vqk2lD.png", 1000, "Тайный"],
+                ["Nova | Sand Dune", "https://i.imgur.com/3pZbN6T.png", 60, "Обычный"],
+                ["P250 | Red Rock", "https://i.imgur.com/mK9e9Yf.png", 70, "Редкий"],
+                ["MAC-10 | Neon Rider", "https://i.imgur.com/1aBcDeF.png", 90, "Редкий"],
+                ["UMP-45 | Grand Prix", "https://i.imgur.com/5uXjC0L.png", 180, "Шмот"],
+                ["SG 553 | Army Sheen", "https://i.imgur.com/8Vqk2lD.png", 50, "Обычный"]
+            ];
+
+            switch (type) {
+                case "basic": return allSkins.filter(s => s[2] <= 200);
+                case "pro": return allSkins.filter(s => s[2] >= 100 && s[2] <= 600);
+                case "elite": return allSkins.filter(s => s[2] >= 300);
+                default: return allSkins;
+            }
         }
 
-        document.getElementById("openCase").onclick = openCase;
+        function updateInventory() {
+            const list = document.getElementById("inventoryList");
+            list.innerHTML = inventory.length ? "" : "<p>Инвентарь пуст</p>";
+            inventory.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "inv-item";
+                div.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}">
+                    <div class="inv-info">
+                        <div><strong>${item.name}</strong></div>
+                        <div class="rarity">${item.rarity}</div>
+                        <div class="price">$${item.price}</div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
 
         function dailyReward() {
-            coins += 5;
+            coins += 20;
             document.getElementById("coins").textContent = coins;
-            localStorage.setItem("lootdrop_coins", coins);
-            alert("✅ Получено +5 монет!");
+            localStorage.setItem("csloot_coins", coins);
+            alert("✅ Получено +20 монет!");
+        }
+
+        function copyRefLink() {
+            navigator.clipboard.writeText(`t.me/CasesBot?start=${refId}`).then(() => {
+                alert("✅ Ссылка скопирована!");
+            });
+        }
+
+        function openTab(tabName) {
+            document.querySelectorAll(".content").forEach(el => el.classList.remove("active"));
+            document.querySelectorAll(".tab").forEach(el => el.classList.remove("active"));
+            document.getElementById(tabName).classList.add("active");
+            document.querySelector(`.tab:nth-child(${tabName === 'game' ? 1 : tabName === 'inventory' ? 2 : 3})`).classList.add("active");
         }
     </script>
 </body>
 </html>
-
