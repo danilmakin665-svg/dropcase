@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>LootDrop — Открывай кейсы!</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
         body {
             background: #0f141e;
             color: white;
@@ -16,23 +16,43 @@
             padding: 20px;
             text-align: center;
         }
-        h1 { font-size: 28px; margin: 20px 0; color: #00d1ff; }
-        .case {
+        h1 { font-size: 24px; margin: 20px 0; color: #00d1ff; }
+        
+        .case-container {
+            position: relative;
             width: 200px;
-            height: 120px;
-            background: url('https://cdn-icons-png.flaticon.com/512/3670/3670036.png') no-repeat center;
-            background-size: contain;
-            margin: 40px 0;
+            height: 150px;
             cursor: pointer;
+            margin: 30px 0;
+        }
+        .case-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             transition: transform 0.2s;
         }
-        .case:hover { transform: scale(1.1); }
+        .case-img:hover { transform: scale(1.1); }
+
         .result {
-            font-size: 18px;
             margin: 20px;
-            min-height: 60px;
+            min-height: 80px;
+            font-size: 16px;
             color: #00d1ff;
+            opacity: 0;
+            transition: opacity 0.5s;
         }
+        .result.show {
+            opacity: 1;
+        }
+
+        .skin-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 0 15px rgba(0, 209, 255, 0.5);
+        }
+
         .coins {
             font-size: 16px;
             background: #1c2333;
@@ -41,6 +61,7 @@
             width: fit-content;
             margin-top: 10px;
         }
+
         .btn {
             margin-top: 20px;
             padding: 12px 24px;
@@ -58,7 +79,9 @@
 <body>
     <h1>🎁 Открой кейс и получи скин!</h1>
     
-    <div class="case" id="openCase"></div>
+    <div class="case-container" id="openCase">
+        <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" class="case-img" alt="Кейс">
+    </div>
     
     <div class="result" id="result">Нажми на кейс, чтобы открыть</div>
     
@@ -70,17 +93,15 @@
         let coins = parseInt(localStorage.getItem("lootdrop_coins")) || 10;
         document.getElementById("coins").textContent = coins;
 
+        // Список скинов: [название, ссылка на картинку]
         const skins = [
-            "AK-47 | Neon Rider (Rare)",
-            "M4A4 | Emperor (Unusual)",
-            "Glock-18 | Moonrise (Mythical)",
-            "Desert Eagle | Shattered Web (Legendary)",
-            "Knife | Stiletto (Covert)",
-            "USP-S | Night Lotus (Classified)",
-            "AWP | Dragon Lore (Ancient)"
+            ["AK-47 | Neon Rider", "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxer9HvfP2q7RgulxfeWJHwgA0kNFZMKKnFchZknKlF-0FjZoYbELZfYGbX64BrBNUzrhaGJmldLpTFb2gpMTZc8PEaYS6KIm1JbRfi_bEcbJNv9D5iBOuYzZbdaS8L1eIu9qBeCqy0ci22Lm2iS5u6W1n/"],
+            ["M4A4 | Emperor", "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxer9HvfP2q7RgulxfeWJHwgA0kNFZMKKnFchZknKlF-0FjZoYbELZfYGbX64BrBNUzrhaGJmldLpTFb2gpMTZc8PEaYS6KIm1JbRfi_bEcbJNv9D5iBOuYzZbdaS8L1eIu9qBeCqy0ci22Lm2iS5u6W1n/"],
+            ["AWP | Dragon Lore", "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxer9HvfP2q7RgulxfeWJHwgA0kNFZMKKnFchZknKlF-0FjZoYbELZfYGbX64BrBNUzrhaGJmldLpTFb2gpMTZc8PEaYS6KIm1JbRfi_bEcbJNv9D5iBOuYzZbdaS8L1eIu9qBeCqy0ci22Lm2iS5u6W1n/"]
         ];
 
-        document.getElementById("openCase").onclick = function() {
+        // Загрузи случайный скин
+        function openCase() {
             if (coins < 1) {
                 document.getElementById("result").innerHTML = "❌ Недостаточно монет!";
                 return;
@@ -90,13 +111,33 @@
             document.getElementById("coins").textContent = coins;
             localStorage.setItem("lootdrop_coins", coins);
 
-            document.getElementById("result").innerHTML = "🌀 Открываем...";
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = '<strong>🌀 Открываем кейс...</strong>';
+            resultDiv.classList.remove("show");
+
+            // Убираем изображение скина
+            document.querySelector(".skin-img")?.remove();
 
             setTimeout(() => {
                 const randomSkin = skins[Math.floor(Math.random() * skins.length)];
-                document.getElementById("result").innerHTML = `🎉 Выпало: <strong>${randomSkin}</strong>`;
+                const name = randomSkin[0];
+                const img = randomSkin[1];
+
+                resultDiv.innerHTML = `<strong>🎉 Выпало: ${name}</strong>`;
+                const imgEl = document.createElement("img");
+                imgEl.src = img;
+                imgEl.alt = name;
+                imgEl.className = "skin-img";
+                resultDiv.appendChild(imgEl);
+                resultDiv.classList.add("show");
+
+                // Звук (можно заменить на свой)
+                const audio = new Audio("https://www.soundjay.com/buttons/sounds/button-1.mp3");
+                audio.play();
             }, 1500);
-        };
+        }
+
+        document.getElementById("openCase").onclick = openCase;
 
         function dailyReward() {
             coins += 5;
