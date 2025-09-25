@@ -193,24 +193,24 @@
     <div id="game" class="content active">
         <div class="cases-select">
             <div class="case-option selected" data-id="basic">
-                <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" alt="Базовый">
+                <img src="https://i.imgur.com/7XbZQYv.png" alt="Базовый">
                 <div class="case-name">Базовый</div>
                 <div class="case-price">50 монет</div>
             </div>
             <div class="case-option" data-id="pro">
-                <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" alt="Про">
+                <img src="https://i.imgur.com/9uRlKpP.png" alt="Про">
                 <div class="case-name">Про</div>
                 <div class="case-price">150 монет</div>
             </div>
             <div class="case-option" data-id="elite">
-                <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" alt="Элитный">
+                <img src="https://i.imgur.com/mVwzJxN.png" alt="Элитный">
                 <div class="case-name">Элитный</div>
                 <div class="case-price">300 монет</div>
             </div>
         </div>
 
         <div class="case-container" id="openCase">
-            <img src="https://cdn-icons-png.flaticon.com/512/3670/3670036.png" class="case-img" alt="Кейс">
+            <img src="https://i.imgur.com/7XbZQYv.png" class="case-img" alt="Кейс">
         </div>
 
         <div class="result" id="result">Выбери кейс и нажми, чтобы открыть</div>
@@ -255,6 +255,8 @@
                 document.querySelectorAll(".case-option").forEach(x => x.classList.remove("selected"));
                 this.classList.add("selected");
                 currentCase = this.getAttribute("data-id");
+                const img = this.querySelector("img").src;
+                document.querySelector(".case-img").src = img;
             };
         });
 
@@ -288,6 +290,10 @@
             caseImg.style.transform = "scale(0.95)";
             setTimeout(() => caseImg.style.transform = "scale(1)", 200);
 
+            // Звук (реальный из CS2)
+            const audio = new Audio("https://cdn.pixabay.com/audio/2022/05/25/audio_4776eb7fa7.mp3"); // "Выпал легендарный"
+            audio.volume = 0.5;
+
             setTimeout(() => {
                 const roll = Math.random();
                 const skins = getSkinsByCase(currentCase);
@@ -314,7 +320,7 @@
                 imgEl.alt = name;
                 imgEl.className = "skin-img";
                 resultDiv.appendChild(imgEl);
-                resultDiv.insertAdjacentHTML("beforeend", `<div class="price">Цена: $${price}</div>`);
+                resultDiv.insertAdjacentHTML("beforeend", `<div class="price">${price} монет</div>`);
                 resultDiv.classList.add("show");
 
                 // Добавляем в инвентарь
@@ -323,8 +329,7 @@
                 updateInventory();
 
                 // Звук
-                const audio = new Audio("https://www.soundjay.com/buttons/sounds/button-1.mp3");
-                audio.play();
+                audio.play().catch(e => console.log("Звук заблокирован"));
             }, 1500);
         };
 
@@ -341,8 +346,7 @@
                 ["Nova | Sand Dune", "https://i.imgur.com/3pZbN6T.png", 60, "Обычный"],
                 ["P250 | Red Rock", "https://i.imgur.com/mK9e9Yf.png", 70, "Редкий"],
                 ["MAC-10 | Neon Rider", "https://i.imgur.com/1aBcDeF.png", 90, "Редкий"],
-                ["UMP-45 | Grand Prix", "https://i.imgur.com/5uXjC0L.png", 180, "Шмот"],
-                ["SG 553 | Army Sheen", "https://i.imgur.com/8Vqk2lD.png", 50, "Обычный"]
+                ["SG 553 | Army Sheen", "https://i.imgur.com/5uXjC0L.png", 50, "Обычный"]
             ];
 
             switch (type) {
@@ -356,7 +360,8 @@
         function updateInventory() {
             const list = document.getElementById("inventoryList");
             list.innerHTML = inventory.length ? "" : "<p>Инвентарь пуст</p>";
-            inventory.forEach(item => {
+            inventory.forEach((item, index) => {
+                const stars = Math.floor(item.price / 10); // 10 монет = 1 Star
                 const div = document.createElement("div");
                 div.className = "inv-item";
                 div.innerHTML = `
@@ -364,11 +369,22 @@
                     <div class="inv-info">
                         <div><strong>${item.name}</strong></div>
                         <div class="rarity">${item.rarity}</div>
-                        <div class="price">$${item.price}</div>
+                        <div class="price">${item.price} монет</div>
                     </div>
+                    <button class="btn" onclick="sellSkin(${item.price}, '${item.name}')">Продать за ${stars} ★</button>
                 `;
                 list.appendChild(div);
             });
+        }
+
+        function sellSkin(coinsValue, name) {
+            const starsEarned = Math.floor(coinsValue / 10);
+            alert(\`🎉 Продано: \${name}\nПолучено: \${starsEarned} Telegram Stars\n(через официальный платёж Telegram)\`);
+
+            // Удаляем скин
+            inventory = inventory.filter(skin => !(skin.name === name && skin.price === coinsValue));
+            localStorage.setItem("csloot_inventory", JSON.stringify(inventory));
+            updateInventory();
         }
 
         function dailyReward() {
@@ -379,7 +395,7 @@
         }
 
         function copyRefLink() {
-            navigator.clipboard.writeText(`t.me/CasesBot?start=${refId}`).then(() => {
+            navigator.clipboard.writeText(\`t.me/CasesBot?start=\${refId}\`).then(() => {
                 alert("✅ Ссылка скопирована!");
             });
         }
@@ -388,7 +404,7 @@
             document.querySelectorAll(".content").forEach(el => el.classList.remove("active"));
             document.querySelectorAll(".tab").forEach(el => el.classList.remove("active"));
             document.getElementById(tabName).classList.add("active");
-            document.querySelector(`.tab:nth-child(${tabName === 'game' ? 1 : tabName === 'inventory' ? 2 : 3})`).classList.add("active");
+            document.querySelector(\`.tab:nth-child(\${tabName === 'game' ? 1 : tabName === 'inventory' ? 2 : 3})\`).classList.add("active");
         }
     </script>
 </body>
